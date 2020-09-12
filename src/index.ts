@@ -2,7 +2,14 @@ import * as express from 'express';
 import * as APM from 'elastic-apm-node';
 
 // start logging service
-const apm = APM.start();
+const apm = APM.start({
+  active: process.env.NODE_ENV === 'production',
+});
+
+/*
+ * In case we want to switch from elastic-apm-node to another service in the future.
+ * we have a three wrapper functions to trace errors, spans and transactions.
+ */
 
 export const logError = (
   err: Error | string | {message: string; params: (string | number)[]},
@@ -11,27 +18,56 @@ export const logError = (
   apm.captureError(err, options);
 };
 
-export const startTransaction = (
-  name: string | null | undefined,
-  // type: string, subtype: string, actions: string, 
-  options?:
-    | {
-        startTime?: number;
-        childOf?: string;
+export const startTransaction = (params: {
+  name: string;
+  type?: string;
+  subtype?: string;
+  action?: string;
+  options?: {
+    startTime?: number;
+    childOf?: string;
+  };
+}): {end: (result: string) => void} => {
+  const transaction = apm.startTransaction(
+    params.name,
+    params.type || null,
+    params.subtype || null,
+    params.action || null,
+    params.options || undefined
+  );
+  return {
+    end: (result: string) => {
+      if (transaction) {
+        transaction.result = result;
+        transaction.end();
       }
-    | undefined
-): {name: string; result: string | number; end: () => void} | null => {
-  return apm.startTransaction(name, options);
+    },
+  };
 };
 
 export const currentTraceparent = apm.currentTraceparent;
 
-export const startSpan = (
-  name: string | null | undefined,
-  // type: string, subtype: string, action: string,
-  options?: {childOf?: string} | undefined
-): {end: () => void} | null => {
-  return apm.startSpan(name, options);
+export const startSpan = (params: {
+  name: string;
+  type?: string;
+  subtype?: string;
+  action?: string;
+  options?: {childOf?: string};
+}): {end: () => void} => {
+  const span = apm.startSpan(
+    params.name,
+    params.type || null,
+    params.subtype || null,
+    params.action || null,
+    params.options || undefined
+  );
+  return {
+    end: () => {
+      if (span) {
+        span.end();
+      }
+    },
+  };
 };
 
 // start express service
@@ -57,8 +93,17 @@ export const server = app.listen(port, () => {
   console.log('Server started on port: ' + port);
 });
 
+// call after setting up the routes in the microservice to catch all 404s
 export const catchAll = (): void => {
   app.all('*', (req, res) => {
+    logError({
+      message: '404',
+      params: [
+        JSON.stringify(req.query.query_string),
+        JSON.stringify(req.route.query),
+      ],
+    });
+
     res.status(404).json({message: 'Not found.'});
   });
 };

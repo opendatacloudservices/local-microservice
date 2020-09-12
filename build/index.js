@@ -4,16 +4,37 @@ exports.api = exports.catchAll = exports.server = exports.startSpan = exports.cu
 const express = require("express");
 const APM = require("elastic-apm-node");
 // start logging service
-const apm = APM.start();
+const apm = APM.start({
+    active: process.env.NODE_ENV === 'production',
+});
+/*
+ * In case we want to switch from elastic-apm-node to another service in the future.
+ * we have a three wrapper functions to trace errors, spans and transactions.
+ */
 exports.logError = (err, options) => {
     apm.captureError(err, options);
 };
-exports.startTransaction = (name, options) => {
-    return apm.startTransaction(name, options);
+exports.startTransaction = (params) => {
+    const transaction = apm.startTransaction(params.name, params.type || null, params.subtype || null, params.action || null, params.options || undefined);
+    return {
+        end: (result) => {
+            if (transaction) {
+                transaction.result = result;
+                transaction.end();
+            }
+        },
+    };
 };
 exports.currentTraceparent = apm.currentTraceparent;
-exports.startSpan = (name, options) => {
-    return apm.startSpan(name, options);
+exports.startSpan = (params) => {
+    const span = apm.startSpan(params.name, params.type || null, params.subtype || null, params.action || null, params.options || undefined);
+    return {
+        end: () => {
+            if (span) {
+                span.end();
+            }
+        },
+    };
 };
 // start express service
 const app = express();
@@ -30,8 +51,16 @@ app.get('/ping', (req, res) => {
 exports.server = app.listen(port, () => {
     console.log('Server started on port: ' + port);
 });
+// call after setting up the routes in the microservice to catch all 404s
 exports.catchAll = () => {
     app.all('*', (req, res) => {
+        exports.logError({
+            message: '404',
+            params: [
+                JSON.stringify(req.query.query_string),
+                JSON.stringify(req.route.query),
+            ],
+        });
         res.status(404).json({ message: 'Not found.' });
     });
 };
