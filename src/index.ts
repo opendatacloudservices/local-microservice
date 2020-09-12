@@ -13,6 +13,7 @@ export const logError = (
 
 export const startTransaction = (
   name: string | null | undefined,
+  // type: string, subtype: string, actions: string, 
   options?:
     | {
         startTime?: number;
@@ -27,6 +28,7 @@ export const currentTraceparent = apm.currentTraceparent;
 
 export const startSpan = (
   name: string | null | undefined,
+  // type: string, subtype: string, action: string,
   options?: {childOf?: string} | undefined
 ): {end: () => void} | null => {
   return apm.startSpan(name, options);
