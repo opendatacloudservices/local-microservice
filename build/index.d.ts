@@ -28,5 +28,6 @@ export declare const startSpan: (params: {
     end: () => void;
 };
 export declare const server: import("http").Server;
+export declare const close: (callback: (err: Error | undefined) => void) => void;
 export declare const catchAll: () => void;
 export declare const api: import("express-serve-static-core").Express;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.catchAll = exports.server = exports.startSpan = exports.currentTraceparent = exports.startTransaction = exports.logError = void 0;
+exports.api = exports.catchAll = exports.close = exports.server = exports.startSpan = exports.currentTraceparent = exports.startTransaction = exports.logError = void 0;
 const express = require("express");
 const APM = require("elastic-apm-node");
 // start logging service
@@ -51,6 +51,9 @@ app.get('/ping', (req, res) => {
 exports.server = app.listen(port, () => {
     console.log('Server started on port: ' + port);
 });
+exports.close = (callback) => {
+    exports.server.close(callback);
+};
 // call after setting up the routes in the microservice to catch all 404s
 exports.catchAll = () => {
     app.all('*', (req, res) => {

@@ -93,6 +93,10 @@ export const server = app.listen(port, () => {
   console.log('Server started on port: ' + port);
 });
 
+export const close = (callback: (err: Error | undefined) => void): void => {
+  server.close(callback);
+};
+
 // call after setting up the routes in the microservice to catch all 404s
 export const catchAll = (): void => {
   app.all('*', (req, res) => {
