@@ -27,7 +27,7 @@ export const startTransaction = (params: {
     startTime?: number;
     childOf?: string;
   };
-}): {end: (result: string) => void} => {
+}): {end: (result: string) => void; id: () => string} => {
   const transaction = apm.startTransaction(
     params.name,
     params.type || null,
@@ -36,6 +36,13 @@ export const startTransaction = (params: {
     params.options || undefined
   );
   return {
+    id: () => {
+      if (transaction) {
+        return transaction.traceparent;
+      } else {
+        return 'unknown';
+      }
+    },
     end: (result: string) => {
       if (transaction) {
         transaction.result = result;

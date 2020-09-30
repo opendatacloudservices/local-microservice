@@ -14,6 +14,7 @@ export declare const startTransaction: (params: {
     };
 }) => {
     end: (result: string) => void;
+    id: () => string;
 };
 export declare const currentTraceparent: string | null;
 export declare const startSpan: (params: {

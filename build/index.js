@@ -17,6 +17,14 @@ exports.logError = (err, options) => {
 exports.startTransaction = (params) => {
     const transaction = apm.startTransaction(params.name, params.type || null, params.subtype || null, params.action || null, params.options || undefined);
     return {
+        id: () => {
+            if (transaction) {
+                return transaction.traceparent;
+            }
+            else {
+                return 'unknown';
+            }
+        },
         end: (result) => {
             if (transaction) {
                 transaction.result = result;
