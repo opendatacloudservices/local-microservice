@@ -6,7 +6,7 @@ test('ping', async (done) => {
     .get(`/ping`)
     .expect(200)
     .then((response) => {
-      expect(response.text).toBe('pong');
+      expect(response.text).toBe('{"message":"pong"}');
     });
 
   done();
