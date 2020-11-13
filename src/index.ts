@@ -79,7 +79,7 @@ export const startSpan = (params: {
 
 // start express service
 const app = express();
-const port = process.env.PORT || 3000;
+export const port = process.env.PORT || 3000;
 
 app.use(apm.middleware.connect());
 

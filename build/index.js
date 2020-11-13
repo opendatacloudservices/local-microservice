@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.catchAll = exports.close = exports.server = exports.startSpan = exports.currentTraceparent = exports.startTransaction = exports.logError = void 0;
+exports.api = exports.catchAll = exports.close = exports.server = exports.port = exports.startSpan = exports.currentTraceparent = exports.startTransaction = exports.logError = void 0;
 const express = require("express");
 const APM = require("elastic-apm-node");
 // start logging service
@@ -46,7 +46,7 @@ exports.startSpan = (params) => {
 };
 // start express service
 const app = express();
-const port = process.env.PORT || 3000;
+exports.port = process.env.PORT || 3000;
 app.use(apm.middleware.connect());
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -56,8 +56,8 @@ app.use((req, res, next) => {
 app.get('/ping', (req, res) => {
     res.status(200).json({ message: 'pong' });
 });
-exports.server = app.listen(port, () => {
-    console.log('Server started on port: ' + port);
+exports.server = app.listen(exports.port, () => {
+    console.log('Server started on port: ' + exports.port);
 });
 exports.close = (callback) => {
     exports.server.close(callback);
