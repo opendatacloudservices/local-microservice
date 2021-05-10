@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.catchAll = exports.close = exports.server = exports.port = exports.startSpan = exports.startTransaction = exports.logInfo = exports.logError = void 0;
+exports.api = exports.catchAll = exports.close = exports.server = exports.port = exports.startSpan = exports.startTransaction = exports.addToken = exports.logInfo = exports.logError = void 0;
 const express = require("express");
 const logger = require("local-logger");
 exports.logError = (err) => {
@@ -9,6 +9,7 @@ exports.logError = (err) => {
 exports.logInfo = (err) => {
     logger.logInfo(err);
 };
+exports.addToken = logger.addToken;
 exports.startTransaction = (params) => {
     return logger.startTransaction(params);
 };

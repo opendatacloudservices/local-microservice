@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { Response } from 'express';
 export declare const logError: (err: Error | string | {
     message: string;
     params: (string | number)[];
@@ -7,6 +8,7 @@ export declare const logInfo: (err: Error | string | {
     message: string;
     params: (string | number)[];
 }) => void;
+export declare const addToken: (url: string, res: Response) => string;
 export declare const startTransaction: (params: {
     name: string;
     type?: string;

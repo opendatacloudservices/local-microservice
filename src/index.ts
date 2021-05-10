@@ -1,4 +1,5 @@
 import * as express from 'express';
+import {Response} from 'express';
 import * as logger from 'local-logger';
 
 export const logError = (
@@ -12,6 +13,8 @@ export const logInfo = (
 ) => {
   logger.logInfo(err);
 };
+
+export const addToken: (url: string, res: Response) => string = logger.addToken;
 
 export const startTransaction = (params: {
   name: string;
