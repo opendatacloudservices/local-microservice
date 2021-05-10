@@ -2,7 +2,11 @@
 export declare const logError: (err: Error | string | {
     message: string;
     params: (string | number)[];
-}, options?: object | undefined) => void;
+}) => void;
+export declare const logInfo: (err: Error | string | {
+    message: string;
+    params: (string | number)[];
+}) => void;
 export declare const startTransaction: (params: {
     name: string;
     type?: string;
@@ -12,11 +16,7 @@ export declare const startTransaction: (params: {
         startTime?: number;
         childOf?: string;
     };
-}) => {
-    end: (result: string) => void;
-    id: () => string;
-};
-export declare const currentTraceparent: string | null;
+}) => (success: boolean, message?: {} | undefined) => void;
 export declare const startSpan: (params: {
     name: string;
     type?: string;
@@ -25,9 +25,7 @@ export declare const startSpan: (params: {
     options?: {
         childOf?: string;
     };
-}) => {
-    end: () => void;
-};
+}) => (success: boolean, message?: {} | undefined) => void;
 export declare const port: string | number;
 export declare const server: import("http").Server;
 export declare const close: (callback: (err: Error | undefined) => void) => void;

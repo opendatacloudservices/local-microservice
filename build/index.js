@@ -1,62 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.catchAll = exports.close = exports.server = exports.port = exports.startSpan = exports.currentTraceparent = exports.startTransaction = exports.logError = void 0;
+exports.api = exports.catchAll = exports.close = exports.server = exports.port = exports.startSpan = exports.startTransaction = exports.logInfo = exports.logError = void 0;
 const express = require("express");
-const APM = require("elastic-apm-node");
-// start logging service
-const apm = APM.start({
-    active: process.env.NODE_ENV === 'production',
-});
-/*
- * In case we want to switch from elastic-apm-node to another service in the future.
- * we have a three wrapper functions to trace errors, spans and transactions.
- */
-exports.logError = (err, options) => {
-    apm.captureError(err, options);
+const logger = require("local-logger");
+exports.logError = (err) => {
+    logger.logError(err);
+};
+exports.logInfo = (err) => {
+    logger.logInfo(err);
 };
 exports.startTransaction = (params) => {
-    const transaction = apm.startTransaction(params.name, params.type || null, params.subtype || null, params.action || null, params.options || undefined);
-    return {
-        id: () => {
-            if (transaction) {
-                return transaction.traceparent;
-            }
-            else {
-                return 'unknown';
-            }
-        },
-        end: (result) => {
-            if (transaction) {
-                transaction.result = result;
-                transaction.end();
-            }
-        },
-    };
+    return logger.startTransaction(params);
 };
-exports.currentTraceparent = apm.currentTraceparent;
 exports.startSpan = (params) => {
-    const span = apm.startSpan(params.name, params.type || null, params.subtype || null, params.action || null, params.options || undefined);
-    return {
-        end: () => {
-            if (span) {
-                span.end();
-            }
-        },
-    };
+    return logger.startSpan(params);
 };
 // start express service
 const app = express();
 exports.port = process.env.PORT || 3000;
-app.use(apm.middleware.connect());
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
+app.use(logger.tokenRoute);
+app.use(logger.logRoute);
 app.get('/ping', (req, res) => {
     res.status(200).json({ message: 'pong' });
 });
 exports.server = app.listen(exports.port, () => {
+    logger.logInfo({ message: 'Service Start', port: exports.port });
     console.log('Server started on port: ' + exports.port);
 });
 exports.close = (callback) => {
@@ -74,6 +47,7 @@ exports.catchAll = () => {
         });
         res.status(404).json({ message: 'Not found.' });
     });
+    app.use(logger.logRouteError);
 };
 exports.api = app;
 //# sourceMappingURL=index.js.map
