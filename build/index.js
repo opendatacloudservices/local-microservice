@@ -1,21 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.catchAll = exports.close = exports.server = exports.port = exports.startSpan = exports.startTransaction = exports.addToken = exports.logInfo = exports.logError = void 0;
+exports.api = exports.simpleResponse = exports.catchAll = exports.close = exports.server = exports.port = void 0;
 const express = require("express");
 const logger = require("local-logger");
-exports.logError = (err) => {
-    logger.logError(err);
-};
-exports.logInfo = (err) => {
-    logger.logInfo(err);
-};
-exports.addToken = logger.addToken;
-exports.startTransaction = (params) => {
-    return logger.startTransaction(params);
-};
-exports.startSpan = (params) => {
-    return logger.startSpan(params);
-};
 // start express service
 const app = express();
 exports.port = process.env.PORT || 3000;
@@ -39,16 +26,18 @@ exports.close = (callback) => {
 // call after setting up the routes in the microservice to catch all 404s
 exports.catchAll = () => {
     app.all('*', (req, res) => {
-        exports.logError({
+        logger.logError({
             message: '404',
-            params: [
-                JSON.stringify(req.query.query_string),
-                JSON.stringify(req.route.query),
-            ],
+            meta: logger.dynamicMeta(req, res),
         });
         res.status(404).json({ message: 'Not found.' });
     });
     app.use(logger.logRouteError);
+};
+exports.simpleResponse = (responseCode, responseText, res, trans) => {
+    const message = { message: responseText };
+    trans(responseCode >= 200 && responseCode <= 299 ? true : false, message);
+    return res.status(responseCode).json(message);
 };
 exports.api = app;
 //# sourceMappingURL=index.js.map
