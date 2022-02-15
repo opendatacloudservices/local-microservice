@@ -1,6 +1,6 @@
 import * as express from 'express';
 import {Response} from 'express';
-import * as logger from 'local-logger';
+import * as logger from '@opendatacloudservices/local-logger';
 
 // start express service
 const app = express();

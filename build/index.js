@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.api = exports.simpleResponse = exports.catchAll = exports.close = exports.server = exports.port = void 0;
 const express = require("express");
-const logger = require("local-logger");
+const logger = require("@opendatacloudservices/local-logger");
 // start express service
 const app = express();
 exports.port = process.env.PORT || 3000;
@@ -20,11 +20,12 @@ exports.server = app.listen(exports.port, () => {
     logger.logInfo({ message: 'Service Start', port: exports.port });
     console.log('Server started on port: ' + exports.port);
 });
-exports.close = (callback) => {
+const close = (callback) => {
     exports.server.close(callback);
 };
+exports.close = close;
 // call after setting up the routes in the microservice to catch all 404s
-exports.catchAll = () => {
+const catchAll = () => {
     app.all('*', (req, res) => {
         logger.logError({
             message: '404',
@@ -34,10 +35,12 @@ exports.catchAll = () => {
     });
     app.use(logger.logRouteError);
 };
-exports.simpleResponse = (responseCode, responseText, res, trans) => {
+exports.catchAll = catchAll;
+const simpleResponse = (responseCode, responseText, res, trans) => {
     const message = { message: responseText };
     trans(responseCode >= 200 && responseCode <= 299 ? true : false, message);
     return res.status(responseCode).json(message);
 };
+exports.simpleResponse = simpleResponse;
 exports.api = app;
 //# sourceMappingURL=index.js.map
